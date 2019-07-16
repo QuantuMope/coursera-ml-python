@@ -1,11 +1,12 @@
 # [Coursera Machine Learning MOOC by Andrew Ng](https://www.coursera.org/learn/machine-learning) 
 # Python Programming Assignments
 
-This repositry contains the python versions of the programming assignments for the [Machine Learning online class](https://www.coursera.org/learn/machine-learning) taught by Professor Andrew Ng. <br />
+This repositry contains the python versions of the programming assignments for the [Machine Learning online class](https://www.coursera.org/learn/machine-learning) taught by Professor Andrew Ng. 
+
 Completed the course to improve knowledge about machine learning. <br />
 Decided to complete the course assignments in Python rather than Octave. <br />
 
-All credit for the conversion of the assignments from Octave to Python goes to Gerges Dib(https://github.com/dibgerge).
+All credit for the conversion of the assignments from Octave to Python goes to [Gerges Dib](https://github.com/dibgerge).
 
 These assignments work seamlessly with the class and do not require any of the materials published in the MATLAB assignments. Here are some new and useful features for these sets of assignments: 
 
