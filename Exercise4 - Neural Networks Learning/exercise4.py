@@ -52,6 +52,45 @@ Theta2 = np.roll(Theta2, 1, axis=0)
 nn_params = np.concatenate([Theta1.ravel(), Theta2.ravel()])
 
 
+def sigmoidGradient(z):
+    """
+    Computes the gradient of the sigmoid function evaluated at z.
+    This should work regardless if z is a matrix or a vector.
+    In particular, if z is a vector or matrix, you should return
+    the gradient for each element.
+
+    Parameters
+    ----------
+    z : array_like
+        A vector or matrix as input to the sigmoid function.
+
+    Returns
+    --------
+    g : array_like
+        Gradient of the sigmoid function. Has the same shape as z.
+
+    Instructions
+    ------------
+    Compute the gradient of the sigmoid function evaluated at
+    each value of z (z can be a matrix, vector or scalar).
+
+    Note
+    ----
+    We have provided an implementation of the sigmoid function
+    in `utils.py` file accompanying this assignment.
+    """
+
+    g = np.zeros(z.shape)
+
+    # ====================== YOUR CODE HERE ======================
+
+    sig = utils.sigmoid(z)
+    g = sig * (1 - sig)
+
+    # =============================================================
+    return g
+
+
 def nnCostFunction(nn_params,
                    input_layer_size,
                    hidden_layer_size,
@@ -168,6 +207,30 @@ def nnCostFunction(nn_params,
     r = (lambda_ / (2 * m)) * (np.sum(Theta1[:, 1:] ** 2) + np.sum(Theta2[:, 1:] ** 2))
     J = (1 / m) * np.sum((-y) * np.log(a3) - (1 - y) * np.log(1 - a3)) + r
 
+    # Part 2 - Back Propagation
+
+    Delta1 = np.zeros(Theta1.shape)
+    Delta2 = np.zeros(Theta2.shape)
+
+    for i in range(m):
+        a1 = X[i, :]
+        z2 = Theta1 @ a1
+        a2 = utils.sigmoid(z2)
+        a2 = np.hstack((np.ones((1, )), a2))
+        z3 = Theta2 @ a2.T
+        a3 = utils.sigmoid(z3)
+        dL = a3 - y.T[i, :]
+        #z2 = np.hstack((np.ones((1,)), z2))
+        d2 = np.multiply(Theta2[:, 1:].T @ dL, sigmoidGradient(z2))
+        Delta2 += dL.reshape((dL.shape[0], 1)) @ a2.reshape((a2.shape[0], 1)).T
+        Delta1 += d2.reshape((d2.shape[0], 1)) @ a1.reshape((a1.shape[0], 1)).T
+
+    Theta2_grad[:, 0] += (1/m) * Delta2[:, 0]
+    Theta2_grad[:, 1:] += (1/m) * Delta2[:, 1:] + lambda_ * Theta2[:, 1:]
+
+    Theta1_grad[:, 0] += (1 / m) * Delta1[:, 0]
+    Theta1_grad[:, 1:] += (1 / m) * Delta1[:, 1:] + lambda_ * Theta1[:, 1:]
+
     # ================================================================
     # Unroll gradients
     # grad = np.concatenate([Theta1_grad.ravel(order=order), Theta2_grad.ravel(order=order)])
@@ -176,18 +239,20 @@ def nnCostFunction(nn_params,
     return J, grad
 
 
-# --------------Testing Cost Function w/o Regularization -----------------
+# ------------- Testing Cost Function w/o Regularization -----------------
 lambda_ = 0
 J, _ = nnCostFunction(nn_params, input_layer_size, hidden_layer_size,
                    num_labels, X, y, lambda_)
 print('Cost at parameters (loaded from ex4weights): %.6f ' % J)
 print('The cost should be about                   : 0.287629.')
 
-grader = utils.Grader()
-grader[1] = nnCostFunction
-grader.grade()
+# grader = utils.Grader()
+# grader[1] = nnCostFunction
+# grader.grade()
+# ------------------------------------------------------------------------
 
-# --------------Testing Cost Function w/ Regularization -------------------
+
+# ------------- Testing Cost Function w/ Regularization -------------------
 lambda_ = 1
 J, _ = nnCostFunction(nn_params, input_layer_size, hidden_layer_size,
                       num_labels, X, y, lambda_)
@@ -195,43 +260,75 @@ J, _ = nnCostFunction(nn_params, input_layer_size, hidden_layer_size,
 print('Cost at parameters (loaded from ex4weights): %.6f' % J)
 print('This value should be about                 : 0.383770.')
 
-grader[2] = nnCostFunction
-grader.grade()
+# grader[2] = nnCostFunction
+# grader.grade()
+# ------------------------------------------------------------------------
 
 
-def sigmoidGradient(z):
+# ------------- Computing Sigmoid Gradient -------------------------------
+z = np.array([-1, -0.5, 0, 0.5, 1])
+g = sigmoidGradient(z)
+print('Sigmoid gradient evaluated at [-1 -0.5 0 0.5 1]:\n  ')
+print(g)
+
+# grader[3] = sigmoidGradient
+# grader.grade()
+# ------------------------------------------------------------------------
+
+
+def randInitializeWeights(L_in, L_out, epsilon_init=0.12):
     """
-    Computes the gradient of the sigmoid function evaluated at z.
-    This should work regardless if z is a matrix or a vector.
-    In particular, if z is a vector or matrix, you should return
-    the gradient for each element.
+    Randomly initialize the weights of a layer in a neural network.
 
     Parameters
     ----------
-    z : array_like
-        A vector or matrix as input to the sigmoid function.
+    L_in : int
+        Number of incomming connections.
+
+    L_out : int
+        Number of outgoing connections.
+
+    epsilon_init : float, optional
+        Range of values which the weight can take from a uniform
+        distribution.
 
     Returns
-    --------
-    g : array_like
-        Gradient of the sigmoid function. Has the same shape as z.
+    -------
+    W : array_like
+        The weight initialiatized to random values.  Note that W should
+        be set to a matrix of size(L_out, 1 + L_in) as
+        the first column of W handles the "bias" terms.
 
     Instructions
     ------------
-    Compute the gradient of the sigmoid function evaluated at
-    each value of z (z can be a matrix, vector or scalar).
-
-    Note
-    ----
-    We have provided an implementation of the sigmoid function
-    in `utils.py` file accompanying this assignment.
+    Initialize W randomly so that we break the symmetry while training
+    the neural network. Note that the first column of W corresponds
+    to the parameters for the bias unit.
     """
 
-    g = np.zeros(z.shape)
+    # You need to return the following variables correctly
+    W = np.zeros((L_out, 1 + L_in))
 
     # ====================== YOUR CODE HERE ======================
 
+    # Randomly initialize the weights to small values
+    W = np.random.rand(L_out, 1 + L_in) * 2 * epsilon_init - epsilon_init
+
+    # ============================================================
+    return W
+
+print('Initializing Neural Network Parameters ...')
+
+initial_Theta1 = randInitializeWeights(input_layer_size, hidden_layer_size)
+initial_Theta2 = randInitializeWeights(hidden_layer_size, num_labels)
+
+# Unroll parameters
+initial_nn_params = np.concatenate([initial_Theta1.ravel(), initial_Theta2.ravel()], axis=0)
 
 
-    # =============================================================
-    return g
+utils.checkNNGradients(nnCostFunction)
+grader[4] = nnCostFunction
+grader.grade()
+
+
+print("debugBreakPoint")
