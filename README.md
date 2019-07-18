@@ -17,6 +17,8 @@ These assignments work seamlessly with the class and do not require any of the m
 - After each part of a given assignment, the Jupyter Notebook contains a cell which prompts the user for submitting the current part of the assignment for grading.   
 
 Each assignment is contained in a separate folder. For example, assignment 1 is contained within the folder `Exercise1`. Each folder contains two files: 
- - The assignment `jupyter` notebook, which has a `.ipynb` extension. All the code which you need to write will be written within this notebook.
+ - The assignment `jupyter` notebook, which has a `.ipynb` extension.
  - A python module `utils.py` which contains some helper functions needed for the assignment. Functions within the `utils` module are called from the python notebook. You do not need to modify or add any code to this file.
  
+Note* Some files have a exercise.py file which contains the jupyter code transferred over. <br />
+I've done this to be able to code in a debugging environment.

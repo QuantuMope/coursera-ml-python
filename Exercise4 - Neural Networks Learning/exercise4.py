@@ -90,6 +90,47 @@ def sigmoidGradient(z):
     # =============================================================
     return g
 
+def randInitializeWeights(L_in, L_out, epsilon_init=0.12):
+    """
+    Randomly initialize the weights of a layer in a neural network.
+
+    Parameters
+    ----------
+    L_in : int
+        Number of incomming connections.
+
+    L_out : int
+        Number of outgoing connections.
+
+    epsilon_init : float, optional
+        Range of values which the weight can take from a uniform
+        distribution.
+
+    Returns
+    -------
+    W : array_like
+        The weight initialiatized to random values.  Note that W should
+        be set to a matrix of size(L_out, 1 + L_in) as
+        the first column of W handles the "bias" terms.
+
+    Instructions
+    ------------
+    Initialize W randomly so that we break the symmetry while training
+    the neural network. Note that the first column of W corresponds
+    to the parameters for the bias unit.
+    """
+
+    # You need to return the following variables correctly
+    W = np.zeros((L_out, 1 + L_in))
+
+    # ====================== YOUR CODE HERE ======================
+
+    # Randomly initialize the weights to small values
+    W = np.random.rand(L_out, 1 + L_in) * 2 * epsilon_init - epsilon_init
+
+    # ============================================================
+    return W
+
 
 def nnCostFunction(nn_params,
                    input_layer_size,
@@ -207,29 +248,32 @@ def nnCostFunction(nn_params,
     r = (lambda_ / (2 * m)) * (np.sum(Theta1[:, 1:] ** 2) + np.sum(Theta2[:, 1:] ** 2))
     J = (1 / m) * np.sum((-y) * np.log(a3) - (1 - y) * np.log(1 - a3)) + r
 
+    # ------------------------------------------------------------
     # Part 2 - Back Propagation
-
     Delta1 = np.zeros(Theta1.shape)
     Delta2 = np.zeros(Theta2.shape)
 
+    # For each test input.
     for i in range(m):
+        # Forward Propagate
         a1 = X[i, :]
         z2 = Theta1 @ a1
         a2 = utils.sigmoid(z2)
         a2 = np.hstack((np.ones((1, )), a2))
         z3 = Theta2 @ a2.T
         a3 = utils.sigmoid(z3)
+        # Back Propagate
         dL = a3 - y.T[i, :]
-        #z2 = np.hstack((np.ones((1,)), z2))
         d2 = np.multiply(Theta2[:, 1:].T @ dL, sigmoidGradient(z2))
         Delta2 += dL.reshape((dL.shape[0], 1)) @ a2.reshape((a2.shape[0], 1)).T
         Delta1 += d2.reshape((d2.shape[0], 1)) @ a1.reshape((a1.shape[0], 1)).T
 
+    # Calculate gradients.
     Theta2_grad[:, 0] += (1/m) * Delta2[:, 0]
-    Theta2_grad[:, 1:] += (1/m) * Delta2[:, 1:] + lambda_ * Theta2[:, 1:]
+    Theta2_grad[:, 1:] += (1/m) * Delta2[:, 1:] + (lambda_/m) * Theta2[:, 1:]
 
-    Theta1_grad[:, 0] += (1 / m) * Delta1[:, 0]
-    Theta1_grad[:, 1:] += (1 / m) * Delta1[:, 1:] + lambda_ * Theta1[:, 1:]
+    Theta1_grad[:, 0] += (1/m) * Delta1[:, 0]
+    Theta1_grad[:, 1:] += (1/m) * Delta1[:, 1:] + (lambda_/m) * Theta1[:, 1:]
 
     # ================================================================
     # Unroll gradients
@@ -246,11 +290,9 @@ J, _ = nnCostFunction(nn_params, input_layer_size, hidden_layer_size,
 print('Cost at parameters (loaded from ex4weights): %.6f ' % J)
 print('The cost should be about                   : 0.287629.')
 
-# grader = utils.Grader()
+grader = utils.Grader()
 # grader[1] = nnCostFunction
 # grader.grade()
-# ------------------------------------------------------------------------
-
 
 # ------------- Testing Cost Function w/ Regularization -------------------
 lambda_ = 1
@@ -262,10 +304,8 @@ print('This value should be about                 : 0.383770.')
 
 # grader[2] = nnCostFunction
 # grader.grade()
-# ------------------------------------------------------------------------
 
-
-# ------------- Computing Sigmoid Gradient -------------------------------
+# ------------------- Computing Sigmoid Gradient ---------------------------
 z = np.array([-1, -0.5, 0, 0.5, 1])
 g = sigmoidGradient(z)
 print('Sigmoid gradient evaluated at [-1 -0.5 0 0.5 1]:\n  ')
@@ -273,50 +313,8 @@ print(g)
 
 # grader[3] = sigmoidGradient
 # grader.grade()
-# ------------------------------------------------------------------------
 
-
-def randInitializeWeights(L_in, L_out, epsilon_init=0.12):
-    """
-    Randomly initialize the weights of a layer in a neural network.
-
-    Parameters
-    ----------
-    L_in : int
-        Number of incomming connections.
-
-    L_out : int
-        Number of outgoing connections.
-
-    epsilon_init : float, optional
-        Range of values which the weight can take from a uniform
-        distribution.
-
-    Returns
-    -------
-    W : array_like
-        The weight initialiatized to random values.  Note that W should
-        be set to a matrix of size(L_out, 1 + L_in) as
-        the first column of W handles the "bias" terms.
-
-    Instructions
-    ------------
-    Initialize W randomly so that we break the symmetry while training
-    the neural network. Note that the first column of W corresponds
-    to the parameters for the bias unit.
-    """
-
-    # You need to return the following variables correctly
-    W = np.zeros((L_out, 1 + L_in))
-
-    # ====================== YOUR CODE HERE ======================
-
-    # Randomly initialize the weights to small values
-    W = np.random.rand(L_out, 1 + L_in) * 2 * epsilon_init - epsilon_init
-
-    # ============================================================
-    return W
-
+# ------------- Testing Neural Net Gradient Function ----------------------
 print('Initializing Neural Network Parameters ...')
 
 initial_Theta1 = randInitializeWeights(input_layer_size, hidden_layer_size)
@@ -327,8 +325,60 @@ initial_nn_params = np.concatenate([initial_Theta1.ravel(), initial_Theta2.ravel
 
 
 utils.checkNNGradients(nnCostFunction)
-grader[4] = nnCostFunction
-grader.grade()
+# grader[4] = nnCostFunction
+# grader.grade()
+
+# ------------- Testing Regularized Neural Net Gradient Function -----------
+#  Check gradients by running checkNNGradients
+lambda_ = 3
+utils.checkNNGradients(nnCostFunction, lambda_)
+
+# Also output the costFunction debugging values
+debug_J, _  = nnCostFunction(nn_params, input_layer_size,
+                          hidden_layer_size, num_labels, X, y, lambda_)
+
+print('\n\nCost at (fixed) debugging parameters (w/ lambda = %f): %f ' % (lambda_, debug_J))
+print('(for lambda = 3, this value should be about 0.576051)')
+
+# grader[5] = nnCostFunction
+# grader.grade()
+# ---------------------------------------------------------------------------
+
+
+# Learning Parameters using scipy.optimize.minimize
+
+#  After you have completed the assignment, change the maxiter to a larger
+#  value to see how more training helps.
+options = {'maxiter': 100}
+
+#  You should also try different values of lambda
+lambda_ = 1
+
+# Create "short hand" for the cost function to be minimized
+costFunction = lambda p: nnCostFunction(p, input_layer_size,
+                                        hidden_layer_size,
+                                        num_labels, X, y, lambda_)
+
+# Now, costFunction is a function that takes in only one argument
+# (the neural network parameters)
+res = optimize.minimize(costFunction,
+                        initial_nn_params,
+                        jac=True,
+                        method='TNC',
+                        options=options)
+
+# get the solution of the optimization
+nn_params = res.x
+
+# Obtain Theta1 and Theta2 back from nn_params
+Theta1 = np.reshape(nn_params[:hidden_layer_size * (input_layer_size + 1)],
+                    (hidden_layer_size, (input_layer_size + 1)))
+
+Theta2 = np.reshape(nn_params[(hidden_layer_size * (input_layer_size + 1)):],
+                    (num_labels, (hidden_layer_size + 1)))
+
+pred = utils.predict(Theta1, Theta2, X)
+print('Training Set Accuracy: %f' % (np.mean(pred == y) * 100))
 
 
 print("debugBreakPoint")
