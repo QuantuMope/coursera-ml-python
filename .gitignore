@@ -108,3 +108,6 @@ venv.bak/
 *.pkl
 *-solved.ipynb
 
+.idea
+.idea/
+
