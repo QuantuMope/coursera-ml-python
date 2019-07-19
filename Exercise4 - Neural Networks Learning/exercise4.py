@@ -260,10 +260,10 @@ def nnCostFunction(nn_params,
         z2 = Theta1 @ a1
         a2 = utils.sigmoid(z2)
         a2 = np.hstack((np.ones((1, )), a2))
-        z3 = Theta2 @ a2.T
+        z3 = Theta2 @ a2
         a3 = utils.sigmoid(z3)
         # Back Propagate
-        dL = a3 - y.T[i, :]
+        dL = a3 - y[:, i]
         d2 = np.multiply(Theta2[:, 1:].T @ dL, sigmoidGradient(z2))
         Delta2 += dL.reshape((dL.shape[0], 1)) @ a2.reshape((a2.shape[0], 1)).T
         Delta1 += d2.reshape((d2.shape[0], 1)) @ a1.reshape((a1.shape[0], 1)).T
