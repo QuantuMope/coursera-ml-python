@@ -166,31 +166,156 @@ def learningCurve(X, y, Xval, yval, lambda_=0):
 
     # ====================== YOUR CODE HERE ======================
 
+    for i in range(1, m + 1):
+        trainX = X[:i, :]
+        trainY = y[:i]
+        theta = utils.trainLinearReg(linearRegCostFunction, trainX, trainY, lambda_)
+        trainJ, _ = linearRegCostFunction(trainX, trainY, theta, lambda_=0)
+        crossJ, _ = linearRegCostFunction(Xval, yval, theta, lambda_=0)
 
+        error_train[i-1] = trainJ
+        error_val[i-1] = crossJ
 
     # =============================================================
     return error_train, error_val
 
 
+def polyFeatures(X, p):
+    """
+    Maps X (1D vector) into the p-th power.
+
+    Parameters
+    ----------
+    X : array_like
+        A data vector of size m, where m is the number of examples.
+
+    p : int
+        The polynomial power to map the features.
+
+    Returns
+    -------
+    X_poly : array_like
+        A matrix of shape (m x p) where p is the polynomial
+        power and m is the number of examples. That is:
+
+        X_poly[i, :] = [X[i], X[i]**2, X[i]**3 ...  X[i]**p]
+
+    Instructions
+    ------------
+    Given a vector X, return a matrix X_poly where the p-th column of
+    X contains the values of X to the p-th power.
+    """
+    # You need to return the following variables correctly.
+    X_poly = np.zeros((X.shape[0], p))
+
+    # ====================== YOUR CODE HERE ======================
+
+    X_poly[:, 0] = originalX = X.ravel()
+    for i in range(1, p):
+        X_poly[:, i] = originalX**(i+1)
+
+    # ============================================================
+    return X_poly
+
+
+def validationCurve(X, y, Xval, yval):
+    """
+    Generate the train and validation errors needed to plot a validation
+    curve that we can use to select lambda_.
+
+    Parameters
+    ----------
+    X : array_like
+        The training dataset. Matrix with shape (m x n) where m is the
+        total number of training examples, and n is the number of features
+        including any polynomial features.
+
+    y : array_like
+        The functions values at each training datapoint. A vector of
+        shape (m, ).
+
+    Xval : array_like
+        The validation dataset. Matrix with shape (m_val x n) where m is the
+        total number of validation examples, and n is the number of features
+        including any polynomial features.
+
+    yval : array_like
+        The functions values at each validation datapoint. A vector of
+        shape (m_val, ).
+
+    Returns
+    -------
+    lambda_vec : list
+        The values of the regularization parameters which were used in
+        cross validation.
+
+    error_train : list
+        The training error computed at each value for the regularization
+        parameter.
+
+    error_val : list
+        The validation error computed at each value for the regularization
+        parameter.
+
+    Instructions
+    ------------
+    Fill in this function to return training errors in `error_train` and
+    the validation errors in `error_val`. The vector `lambda_vec` contains
+    the different lambda parameters to use for each calculation of the
+    errors, i.e, `error_train[i]`, and `error_val[i]` should give you the
+    errors obtained after training with `lambda_ = lambda_vec[i]`.
+
+    Note
+    ----
+    You can loop over lambda_vec with the following:
+
+          for i in range(len(lambda_vec))
+              lambda = lambda_vec[i]
+              # Compute train / val errors when training linear
+              # regression with regularization parameter lambda_
+              # You should store the result in error_train[i]
+              # and error_val[i]
+              ....
+    """
+    # Selected values of lambda (you should not change this)
+    lambda_vec = [0, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 3, 10]
+
+    # You need to return these variables correctly.
+    error_train = np.zeros(len(lambda_vec))
+    error_val = np.zeros(len(lambda_vec))
+
+    # ====================== YOUR CODE HERE ======================
+
+    for i, lambda_ in enumerate(lambda_vec):
+        theta = utils.trainLinearReg(linearRegCostFunction, X, y, lambda_)
+        trainJ, _ = linearRegCostFunction(X, y, theta, lambda_=0)
+        crossJ, _ = linearRegCostFunction(Xval, yval, theta, lambda_=0)
+
+        error_train[i] = trainJ
+        error_val[i] = crossJ
+
+    # ============================================================
+    return lambda_vec, error_train, error_val
+
 # ------------------Testing Regularized Linear Regression Cost Function ------------------
 
-# theta = np.array([1, 1])
-# J, _ = linearRegCostFunction(np.concatenate([np.ones((m, 1)), X], axis=1), y, theta, 1)
-#
-# print('Cost at theta = [1, 1]:\t   %f ' % J)
-# print('This value should be about 303.993192)\n' % J)
-#
+theta = np.array([1, 1])
+J, _ = linearRegCostFunction(np.concatenate([np.ones((m, 1)), X], axis=1), y, theta, 1)
+
+print('Cost at theta = [1, 1]:\t   %f ' % J)
+print('This value should be about 303.993192)\n' % J)
+
 # grader[1] = linearRegCostFunction
 # grader.grade()
-#
-# # ------------------Testing Regularized Linear Regression Gradient -----------------------
-#
-# theta = np.array([1, 1])
-# J, grad = linearRegCostFunction(np.concatenate([np.ones((m, 1)), X], axis=1), y, theta, 1)
-#
-# print('Gradient at theta = [1, 1]:  [{:.6f}, {:.6f}] '.format(*grad))
-# print(' (this value should be about [-15.303016, 598.250744])\n')
-#
+
+# ------------------Testing Regularized Linear Regression Gradient -----------------------
+
+theta = np.array([1, 1])
+J, grad = linearRegCostFunction(np.concatenate([np.ones((m, 1)), X], axis=1), y, theta, 1)
+
+print('Gradient at theta = [1, 1]:  [{:.6f}, {:.6f}] '.format(*grad))
+print(' (this value should be about [-15.303016, 598.250744])\n')
+
 # grader[2] = linearRegCostFunction
 # grader.grade()
 
@@ -206,5 +331,126 @@ pyplot.xlabel('Change in water level (x)')
 pyplot.ylabel('Water flowing out of the dam (y)')
 pyplot.plot(X, np.dot(X_aug, theta), '--', lw=2);
 #pyplot.show()
+
+# ---------------------------------Learning Curves -------------------------------------------
+
+X_aug = np.concatenate([np.ones((m, 1)), X], axis=1)
+Xval_aug = np.concatenate([np.ones((yval.size, 1)), Xval], axis=1)
+error_train, error_val = learningCurve(X_aug, y, Xval_aug, yval, lambda_=0)
+
+pyplot.plot(np.arange(1, m+1), error_train, np.arange(1, m+1), error_val, lw=2)
+pyplot.title('Learning curve for linear regression')
+pyplot.legend(['Train', 'Cross Validation'])
+pyplot.xlabel('Number of training examples')
+pyplot.ylabel('Error')
+pyplot.axis([0, 13, 0, 150])
+#pyplot.show()
+
+print('# Training Examples\tTrain Error\tCross Validation Error')
+for i in range(m):
+    print('  \t%d\t\t%f\t%f' % (i+1, error_train[i], error_val[i]))
+
+# grader[3] = learningCurve
+# grader.grade()
+
+# ---------------------------------Testing Polynomial Feature Mapping ------------------------
+
+p = 8
+
+# Map X onto Polynomial Features and Normalize
+X_poly = polyFeatures(X, p)
+X_poly, mu, sigma = utils.featureNormalize(X_poly)
+X_poly = np.concatenate([np.ones((m, 1)), X_poly], axis=1)
+
+# Map X_poly_test and normalize (using mu and sigma)
+X_poly_test = polyFeatures(Xtest, p)
+X_poly_test -= mu
+X_poly_test /= sigma
+X_poly_test = np.concatenate([np.ones((ytest.size, 1)), X_poly_test], axis=1)
+
+# Map X_poly_val and normalize (using mu and sigma)
+X_poly_val = polyFeatures(Xval, p)
+X_poly_val -= mu
+X_poly_val /= sigma
+X_poly_val = np.concatenate([np.ones((yval.size, 1)), X_poly_val], axis=1)
+
+print('Normalized Training Example 1:')
+X_poly[0, :]
+
+# grader[4] = polyFeatures
+# grader.grade()
+
+# ---------------------------------Validation Curve -----------------------------------------
+
+lambda_ = 100
+theta = utils.trainLinearReg(linearRegCostFunction, X_poly, y,
+                             lambda_=lambda_, maxiter=55)
+
+# Plot training data and fit
+pyplot.plot(X, y, 'ro', ms=10, mew=1.5, mec='k')
+
+utils.plotFit(polyFeatures, np.min(X), np.max(X), mu, sigma, theta, p)
+
+pyplot.xlabel('Change in water level (x)')
+pyplot.ylabel('Water flowing out of the dam (y)')
+pyplot.title('Polynomial Regression Fit (lambda = %f)' % lambda_)
+pyplot.ylim([-20, 50])
+
+pyplot.figure()
+error_train, error_val = learningCurve(X_poly, y, X_poly_val, yval, lambda_)
+pyplot.plot(np.arange(1, 1+m), error_train, np.arange(1, 1+m), error_val)
+
+pyplot.title('Polynomial Regression Learning Curve (lambda = %f)' % lambda_)
+pyplot.xlabel('Number of training examples')
+pyplot.ylabel('Error')
+pyplot.axis([0, 13, 0, 100])
+pyplot.legend(['Train', 'Cross Validation'])
+#pyplot.show()
+
+print('Polynomial Regression (lambda = %f)\n' % lambda_)
+print('# Training Examples\tTrain Error\tCross Validation Error')
+for i in range(m):
+    print('  \t%d\t\t%f\t%f' % (i+1, error_train[i], error_val[i]))
+
+
+lambda_vec, error_train, error_val = validationCurve(X_poly, y, X_poly_val, yval)
+
+pyplot.plot(lambda_vec, error_train, '-o', lambda_vec, error_val, '-o', lw=2)
+pyplot.legend(['Train', 'Cross Validation'])
+pyplot.xlabel('lambda')
+pyplot.ylabel('Error')
+
+print('lambda\t\tTrain Error\tValidation Error')
+for i in range(len(lambda_vec)):
+    print(' %f\t%f\t%f' % (lambda_vec[i], error_train[i], error_val[i]))
+
+# grader[5] = validationCurve
+# grader.grade()
+
+# -------------------------- Computing Test Set Error (optional)  --------------------------------
+
+# ====================== YOUR CODE HERE ===========================
+
+# Compute the test error using the given test data.
+optimalLambda = lambda_vec[np.argmin(error_val)]
+theta = utils.trainLinearReg(linearRegCostFunction, X_poly, y,
+                             lambda_=optimalLambda, maxiter=55)
+test_J, _ = linearRegCostFunction(X_poly_test, ytest, theta, lambda_=0)
+
+
+print('')
+print('Test error is %f for Lambda (%s)' % (test_J, optimalLambda))
+print('Should be 3.8599 for Lambda (3)')
+
+# ==================================================================
+
+# ------------------------ Learning Curves with Randomly Selected Examples (optional) ---------------
+
+# ====================== YOUR CODE HERE ===========================
+
+
+# ==================================================================
+
+
 
 print("Debug Breakpoint")
