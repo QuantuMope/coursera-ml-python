@@ -357,17 +357,17 @@ X, y, Xval, yval = data['X'], data['y'][:, 0], data['Xval'], data['yval'][:, 0]
 # Plot training data
 utils.plotData(X, y)
 
-# # Try different SVM Parameters here
-# C, sigma = dataset3Params(X, y, Xval, yval)
-#
-# # Train the SVM
-# # model = utils.svmTrain(X, y, C, lambda x1, x2: gaussianKernel(x1, x2, sigma))
-# model = utils.svmTrain(X, y, C, gaussianKernel, args=(sigma,))
-# utils.visualizeBoundary(X, y, model)
-# print(C, sigma)
-#
-# grader[2] = lambda : (C, sigma)
-# grader.grade()
+# Try different SVM Parameters here
+C, sigma = dataset3Params(X, y, Xval, yval)
+
+# Train the SVM
+# model = utils.svmTrain(X, y, C, lambda x1, x2: gaussianKernel(x1, x2, sigma))
+model = utils.svmTrain(X, y, C, gaussianKernel, args=(sigma,))
+utils.visualizeBoundary(X, y, model)
+print(C, sigma)
+
+grader[2] = lambda : (C, sigma)
+grader.grade()
 
 # ---------------------- Testing Email Processing ------------------------------------------
 
