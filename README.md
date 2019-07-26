@@ -20,5 +20,5 @@ Each assignment is contained in a separate folder. For example, assignment 1 is 
  - The assignment `jupyter` notebook, which has a `.ipynb` extension.
  - A python module `utils.py` which contains some helper functions needed for the assignment. Functions within the `utils` module are called from the python notebook. You do not need to modify or add any code to this file.
  
-Note* Some files have a exercise.py file which contains the jupyter code transferred over. <br />
-I've done this to be able to code in a debugging environment.
+**Some files have a exercise.py file which contains the jupyter code transferred over. <br />
+I've done this to be able to code in a debugging environment which vastly increased the speed at which I completed the assignments.**
