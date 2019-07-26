@@ -6,7 +6,7 @@ This repositry contains the python versions of the programming assignments for t
 Completed the course to improve knowledge about machine learning. <br />
 Decided to complete the course assignments in Python rather than Octave. <br />
 
-All credit for the conversion of the assignments from Octave to Python goes to [Gerges Dib](https://github.com/dibgerge).
+**All credit for the conversion of the assignments from Octave to Python goes to [Gerges Dib](https://github.com/dibgerge).**
 
 These assignments work seamlessly with the class and do not require any of the materials published in the MATLAB assignments. Here are some new and useful features for these sets of assignments: 
 
