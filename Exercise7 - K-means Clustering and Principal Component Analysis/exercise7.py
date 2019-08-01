@@ -573,4 +573,5 @@ ax.set_title('Pixel dataset plotted in 2D, using PCA for dimensionality reductio
 ax.grid(False)
 pass
 
+
 print('debugBreakpoint')
