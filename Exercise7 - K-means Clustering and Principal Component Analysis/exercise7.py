@@ -17,6 +17,7 @@ except ValueError:
 # define the submission/grader object for this exercise
 grader = utils.Grader()
 
+# Functions with filled out code
 
 def findClosestCentroids(X, centroids):
     """
@@ -171,6 +172,158 @@ def kMeansInitCentroids(X, K):
     return centroids
 
 
+def pca(X):
+    """
+    Run principal component analysis.
+
+    Parameters
+    ----------
+    X : array_like
+        The dataset to be used for computing PCA. It has dimensions (m x n)
+        where m is the number of examples (observations) and n is
+        the number of features.
+
+    Returns
+    -------
+    U : array_like
+        The eigenvectors, representing the computed principal components
+        of X. U has dimensions (n x n) where each column is a single
+        principal component.
+
+    S : array_like
+        A vector of size n, contaning the singular values for each
+        principal component. Note this is the diagonal of the matrix we
+        mentioned in class.
+
+    Instructions
+    ------------
+    You should first compute the covariance matrix. Then, you
+    should use the "svd" function to compute the eigenvectors
+    and eigenvalues of the covariance matrix.
+
+    Notes
+    -----
+    When computing the covariance matrix, remember to divide by m (the
+    number of examples).
+    """
+    # Useful values
+    m, n = X.shape
+
+    # You need to return the following variables correctly.
+    U = np.zeros(n)
+    S = np.zeros(n)
+
+    # ====================== YOUR CODE HERE ======================
+
+    # Compute the covariance matrix sigma
+    sigma = (1/m) * (X.T @ X)
+
+    # Singular Value Decomposition
+    U, S, V = np.linalg.svd(sigma)
+
+    # ============================================================
+    return U, S
+
+
+def projectData(X, U, K):
+    """
+    Computes the reduced data representation when projecting only
+    on to the top K eigenvectors.
+
+    Parameters
+    ----------
+    X : array_like
+        The input dataset of shape (m x n). The dataset is assumed to be
+        normalized.
+
+    U : array_like
+        The computed eigenvectors using PCA. This is a matrix of
+        shape (n x n). Each column in the matrix represents a single
+        eigenvector (or a single principal component).
+
+    K : int
+        Number of dimensions to project onto. Must be smaller than n.
+
+    Returns
+    -------
+    Z : array_like
+        The projects of the dataset onto the top K eigenvectors.
+        This will be a matrix of shape (m x k).
+
+    Instructions
+    ------------
+    Compute the projection of the data using only the top K
+    eigenvectors in U (first K columns).
+    For the i-th example X[i,:], the projection on to the k-th
+    eigenvector is given as follows:
+
+        x = X[i, :]
+        projection_k = np.dot(x,  U[:, k])
+
+    """
+    # You need to return the following variables correctly.
+    Z = np.zeros((X.shape[0], K))
+
+    # ====================== YOUR CODE HERE ======================
+
+    Ureduce = U[:, :K]
+    Z = X @ Ureduce
+
+    # =============================================================
+    return Z
+
+
+def recoverData(Z, U, K):
+    """
+    Recovers an approximation of the original data when using the
+    projected data.
+
+    Parameters
+    ----------
+    Z : array_like
+        The reduced data after applying PCA. This is a matrix
+        of shape (m x K).
+
+    U : array_like
+        The eigenvectors (principal components) computed by PCA.
+        This is a matrix of shape (n x n) where each column represents
+        a single eigenvector.
+
+    K : int
+        The number of principal components retained
+        (should be less than n).
+
+    Returns
+    -------
+    X_rec : array_like
+        The recovered data after transformation back to the original
+        dataset space. This is a matrix of shape (m x n), where m is
+        the number of examples and n is the dimensions (number of
+        features) of original datatset.
+
+    Instructions
+    ------------
+    Compute the approximation of the data by projecting back
+    onto the original space using the top K eigenvectors in U.
+    For the i-th example Z[i,:], the (approximate)
+    recovered data for dimension j is given as follows:
+
+        v = Z[i, :]
+        recovered_j = np.dot(v, U[j, :K])
+
+    Notice that U[j, :K] is a vector of size K.
+    """
+    # You need to return the following variables correctly.
+    X_rec = np.zeros((Z.shape[0], U.shape[0]))
+
+    # ====================== YOUR CODE HERE ======================
+
+    Ureduce = U[:, :K]
+    X_rec = Z @ Ureduce.T
+
+    # =============================================================
+    return X_rec
+
 # -------------------- Testing Closest Centroids ----------------------------------
 
 # Load an example dataset that we will be using
@@ -188,8 +341,8 @@ print('Closest centroids for the first 3 examples:')
 print(idx[:3])
 print('(the closest centroids should be 0, 2, 1 respectively)')
 
-# grader[1] = findClosestCentroids
-# grader.grade()
+grader[1] = findClosestCentroids
+grader.grade()
 
 # -------------------- Testing Compute Centroids ----------------------------------
 
@@ -203,8 +356,8 @@ print('   [ 2.428301 3.157924 ]')
 print('   [ 5.813503 2.633656 ]')
 print('   [ 7.119387 3.616684 ]')
 
-# grader[2] = computeCentroids
-# grader.grade()
+grader[2] = computeCentroids
+grader.grade()
 
 # -------------------- Image Compression with K-Means --------------------------
 
@@ -273,7 +426,7 @@ ax[1].set_title('Compressed, with %d colors' % K)
 ax[1].grid(False)
 #pyplot.show()
 
-# -------------------- PCA ------------------------------------------------
+# ----------------- Testing Principal Component Analysis ----------------------
 
 # Load the dataset into the variable X
 data = loadmat(os.path.join('Data', 'ex7data1.mat'))
@@ -285,8 +438,139 @@ pyplot.axis([0.5, 6.5, 2, 8])
 pyplot.gca().set_aspect('equal')
 pyplot.grid(False)
 
+#  Before running PCA, it is important to first normalize X
+X_norm, mu, sigma = utils.featureNormalize(X)
 
+#  Run PCA
+U, S = pca(X_norm)
 
+#  Draw the eigenvectors centered at mean of data. These lines show the
+#  directions of maximum variations in the dataset.
+fig, ax = pyplot.subplots()
+ax.plot(X[:, 0], X[:, 1], 'bo', ms=10, mec='k', mew=0.25)
 
+for i in range(2):
+    ax.arrow(mu[0], mu[1], 1.5 * S[i]*U[0, i], 1.5 * S[i]*U[1, i],
+             head_width=0.25, head_length=0.2, fc='k', ec='k', lw=2, zorder=1000)
+
+ax.axis([0.5, 6.5, 2, 8])
+ax.set_aspect('equal')
+ax.grid(False)
+
+print('Top eigenvector: U[:, 0] = [{:.6f} {:.6f}]'.format(U[0, 0], U[1, 0]))
+print(' (you should expect to see [-0.707107 -0.707107])')
+
+grader[3] = pca
+grader.grade()
+
+# ----------------- Testing Project Data (PCA) ------------------------------
+
+#  Project the data onto K = 1 dimension
+K = 1
+Z = projectData(X_norm, U, K)
+print('Projection of the first example: {:.6f}'.format(Z[0, 0]))
+print('(this value should be about    : 1.481274)')
+
+grader[4] = projectData
+grader.grade()
+
+# ----------------- Testing Recover Data (PCA) ---------------------------------
+
+X_rec  = recoverData(Z, U, K)
+print('Approximation of the first example: [{:.6f} {:.6f}]'.format(X_rec[0, 0], X_rec[0, 1]))
+print('       (this value should be about  [-1.047419 -1.047419])')
+
+#  Plot the normalized dataset (returned from featureNormalize)
+fig, ax = pyplot.subplots(figsize=(5, 5))
+ax.plot(X_norm[:, 0], X_norm[:, 1], 'bo', ms=8, mec='b', mew=0.5)
+ax.set_aspect('equal')
+ax.grid(False)
+pyplot.axis([-3, 2.75, -3, 2.75])
+
+# Draw lines connecting the projected points to the original points
+ax.plot(X_rec[:, 0], X_rec[:, 1], 'ro', mec='r', mew=2, mfc='none')
+for xnorm, xrec in zip(X_norm, X_rec):
+    ax.plot([xnorm[0], xrec[0]], [xnorm[1], xrec[1]], '--k', lw=1)
+
+grader[5] = recoverData
+grader.grade()
+
+# ------------------- Face Image Dataset ---------------------------------
+
+#  Load Face dataset
+data = loadmat(os.path.join('Data', 'ex7faces.mat'))
+X = data['X']
+
+#  Display the first 100 faces in the dataset
+utils.displayData(X[:100, :], figsize=(8, 8))
+
+#  normalize X by subtracting the mean value from each feature
+X_norm, mu, sigma = utils.featureNormalize(X)
+
+#  Run PCA
+U, S = pca(X_norm)
+
+#  Visualize the top 36 eigenvectors found
+utils.displayData(U[:, :36].T, figsize=(8, 8))
+
+#  Project images to the eigen space using the top k eigenvectors
+#  If you are applying a machine learning algorithm
+K = 100
+Z = projectData(X_norm, U, K)
+
+print('The projected data Z has a shape of: ', Z.shape)
+
+#  Project images to the eigen space using the top K eigen vectors and
+#  visualize only using those K dimensions
+#  Compare to the original input, which is also displayed
+K = 100
+X_rec  = recoverData(Z, U, K)
+
+# Display normalized data
+utils.displayData(X_norm[:100, :], figsize=(6, 6))
+pyplot.gcf().suptitle('Original faces')
+
+# Display reconstructed data from only k eigenfaces
+utils.displayData(X_rec[:100, :], figsize=(6, 6))
+pyplot.gcf().suptitle('Recovered faces')
+pass
+
+A = mpl.image.imread(os.path.join('Data', 'bird_small.png'))
+A /= 255
+X = A.reshape(-1, 3)
+
+# perform the K-means clustering again here
+K = 16
+max_iters = 10
+initial_centroids = kMeansInitCentroids(X, K)
+centroids, idx = utils.runkMeans(X, initial_centroids,
+                                 findClosestCentroids,
+                                 computeCentroids, max_iters)
+
+#  Sample 1000 random indexes (since working with all the data is
+#  too expensive. If you have a fast computer, you may increase this.
+sel = np.random.choice(X.shape[0], size=1000)
+
+fig = pyplot.figure(figsize=(12, 12))
+ax = fig.add_subplot(111, projection='3d')
+
+ax.scatter(X[sel, 0], X[sel, 1], X[sel, 2], cmap='rainbow', c=idx[sel], s=8**2)
+ax.set_title('Pixel dataset plotted in 3D.\nColor shows centroid memberships')
+pass
+
+# Subtract the mean to use PCA
+X_norm, mu, sigma = utils.featureNormalize(X)
+
+# PCA and project the data to 2D
+U, S = pca(X_norm)
+Z = projectData(X_norm, U, 2)
+
+fig = pyplot.figure(figsize=(6, 6))
+ax = fig.add_subplot(111)
+
+ax.scatter(Z[sel, 0], Z[sel, 1], cmap='rainbow', c=idx[sel], s=64)
+ax.set_title('Pixel dataset plotted in 2D, using PCA for dimensionality reduction')
+ax.grid(False)
+pass
 
 print('debugBreakpoint')
